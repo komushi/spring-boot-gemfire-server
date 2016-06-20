@@ -7,6 +7,7 @@
 	<artifactId>spring-boot-gemfire-server</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
+	<relativePath></relativePath>
 
 	<name>spring-boot-gemfire-server</name>
 	<description>Gemfire project for Spring Boot</description>
