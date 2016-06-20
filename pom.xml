@@ -7,7 +7,6 @@
 	<artifactId>spring-boot-gemfire-server</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<relativePath></relativePath>
 
 	<name>spring-boot-gemfire-server</name>
 	<description>Gemfire project for Spring Boot</description>
@@ -16,6 +15,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>1.4.0.BUILD-SNAPSHOT</version>
+		<relativePath></relativePath>
 	</parent>
 
 
