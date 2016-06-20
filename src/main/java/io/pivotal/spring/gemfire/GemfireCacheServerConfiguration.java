@@ -64,6 +64,8 @@ public class GemfireCacheServerConfiguration {
         gemfireProperties.setProperty("jmx-manager-port", properties.getJmxManagerPort());
         gemfireProperties.setProperty("jmx-manager-start", "true");
 
+        gemfireProperties.setProperty("log-file", "mylog.log");
+
         return gemfireProperties;
     }
 
