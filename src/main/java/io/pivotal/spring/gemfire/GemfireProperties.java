@@ -13,7 +13,7 @@ public class GemfireProperties {
 
     private static final Integer DEFAULT_CACHE_SERVER_PORT = 40404;
 
-    private static final String DEFAULT_LOG_LEVEL = "fine";
+    private static final String DEFAULT_LOG_LEVEL = "config";
 
     private static final String DEFAULT_HOSTNAME_FOR_CLIENTS = "localhost";
 
@@ -32,6 +32,8 @@ public class GemfireProperties {
     private Integer maxConnections;
 
     private String logLevel;
+
+    private String logFile;
 
     private String locatorAddress;
 
@@ -113,6 +115,14 @@ public class GemfireProperties {
         else {
             return this.logLevel;
         }
+    }
+
+    public void setLogFile(String logFile) {
+        this.logFile = logFile;
+    }
+
+    public String getLogFile() {
+        return this.logFile;
     }
 
     public void setLocatorAddress(String locatorAddress) {

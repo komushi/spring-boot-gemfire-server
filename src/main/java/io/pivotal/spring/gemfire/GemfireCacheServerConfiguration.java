@@ -28,6 +28,9 @@ public class GemfireCacheServerConfiguration {
 
     @Bean
     CacheServerFactoryBean gemfireCacheServer (Cache gemfireCache) {
+
+
+
         CacheServerFactoryBean gemfireCacheServer = new CacheServerFactoryBean();
 
         gemfireCacheServer.setCache(gemfireCache);
@@ -64,8 +67,12 @@ public class GemfireCacheServerConfiguration {
         gemfireProperties.setProperty("jmx-manager-port", properties.getJmxManagerPort());
         gemfireProperties.setProperty("jmx-manager-start", "true");
 
-        gemfireProperties.setProperty("log-file", "mylog.log");
+        String logFile = properties.getLogFile();
 
+        if (logFile != null && !logFile.isEmpty()) {
+            gemfireProperties.setProperty("log-file", logFile);
+        }
+        
         return gemfireProperties;
     }
 

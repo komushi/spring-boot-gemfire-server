@@ -1,3 +1,7 @@
+## Reference
+Thanks to John Blum, I learned a lot from his demo.
+https://github.com/jxblum/pivotal-gemfire-clientserver-examples
+
 ## Quick Start Steps 
 
 ## Download and Build
@@ -10,10 +14,34 @@ mvn clean package -DskipTests
 
 ## Run with Maven
 
-which works fine
+### which works fine, please play with gfsh.
 
 ```
 mvn spring-boot:run
+```
+
+gfsh and connect
+
+```
+gfsh
+```
+
+```
+gfsh>connect --locator=localhost[10334]
+Connecting to Locator at [host=localhost, port=10334] ..
+Connecting to Manager at [host=192.168.11.109, port=1099] ..
+Successfully connected to: [host=192.168.11.109, port=1099]
+```
+
+```
+gfsh>query --query="select * from /fact"
+
+Result     : false
+startCount : 0
+endCount   : 20
+Message    : Cannot find regions <[/fact]> in any of the members
+
+NEXT_STEP_NAME : END
 ```
 
 ## Run in java cli
@@ -22,7 +50,7 @@ mvn spring-boot:run
 java -jar target/spring-boot-gemfire-server-0.0.1-SNAPSHOT.jar
 ```
 
-which will have the following error.
+### which will have the following error.
 It seems to related to this bug (https://issues.apache.org/jira/browse/GEODE-800) but did not find a resolution.
 
 ```
@@ -154,3 +182,31 @@ Caused by: java.lang.IllegalStateException: Required Commands classes were not l
 	... 52 more
 ```
 
+### Work-Round
+Thanks to Carlos(https://github.com/caxqueiroz, I learned a lot from him.) I managed to have a temproray solution to work round the gemfire/geode bug - adding those classes in the build jar.
+
+```
+tar -zxvf spring-shell-classes.tar.gz
+tar -zxvf gemfire-classes.tar.gz
+```
+
+```
+jar -uvf target/spring-boot-gemfire-server-0.0.1-SNAPSHOT.jar com/gemstone/gemfire/management/internal/cli/commands/
+jar -uvf target/spring-boot-gemfire-server-0.0.1-SNAPSHOT.jar com/gemstone/gemfire/management/internal/cli/converters/
+jar -uvf target/spring-boot-gemfire-server-0.0.1-SNAPSHOT.jar org/springframework/shell/converters/
+```
+
+Run it with java cli to test with gfsh again - works for the currenct pom.xml.
+```
+java -jar target/spring-boot-gemfire-server-0.0.1-SNAPSHOT.jar
+```
+
+## Deploy to Cloud Foundry
+
+Health check is bad for none-web apps in the current CF.
+
+```
+cf push spring-boot-gemfire --no-start -p spring-boot135-gemfire-server-0.0.1-SNAPSHOT.jar
+cf set-health-check spring-boot-gemfire 'none'
+cf start spring-boot-gemfire
+```

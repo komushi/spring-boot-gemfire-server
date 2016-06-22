@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="FATAL" shutdownHook="disable">
+  <Properties>
+    <Property name="gemfire-pattern">[%level{lowerCase=true} %date{yyyy/MM/dd HH:mm:ss.SSS z} &lt;%thread&gt; tid=%tid] %message%n%throwable%n</Property>
+  </Properties>
+
+  <Appenders>
+    <Console name="STD_OUT" target="SYSTEM_OUT">
+      <PatternLayout pattern="${gemfire-pattern}"/>
+    </Console>
+  </Appenders>
+
+  <Loggers>
+    <Logger name="com.gemstone" level="INFO" additivity="true">
+      <filters>
+        <MarkerFilter marker="GEMFIRE_VERBOSE" onMatch="DENY" onMismatch="NEUTRAL"/>
+      </filters>
+      <appender-ref ref="STD_OUT" />
+    </Logger>
+  </Loggers>
+</Configuration>
