@@ -217,7 +217,7 @@ dataflow config server http://<dataflow_server_name>.cfapps.io
 
 app register --name gemfire --type sink --uri https://rawgit.com/komushi/spring-boot-gemfire-server/master/scslib/gemfire-sink-rabbit-1.0.0.BUILD-SNAPSHOT.jar
 
-stream create --name http2gem --definition "http | gemfire --hostAddresses=10.254.0.10:10334 --regionName=RegionRaw --json=true --keyExpression=payload.getField('uuid')" --deploy
+stream create --name http2gem --definition "http | gemfire --hostAddresses=10.10.114.60:10334 --regionName=RegionRaw --json=true --keyExpression=payload.getField('uuid')" --deploy
 
 http post --target http://http2gem-http.cfapps.io --contentType "application/json" --data "{\"uuid\":\"7a49cba6-d3fc-47a4-8e1a-c2503b8144e1\",\"route\":\"C161.137_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
 
