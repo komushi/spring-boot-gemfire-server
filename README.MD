@@ -211,11 +211,17 @@ cf set-health-check spring-boot-gemfire 'none'
 cf start spring-boot-gemfire
 ```
 
+In dataflow shell
 ```
-app register --name gemfire --type sink --uri http://repo.spring.io/snapshot/org/springframework/cloud/stream/app/gemfire-sink-rabbit/1.0.0.BUILD-SNAPSHOT/gemfire-sink-rabbit-1.0.0.BUILD-20160621.142107-179.jar
+dataflow config server http://<dataflow_server_name>.cfapps.io
 
+app register --name gemfire --type sink --uri https://rawgit.com/komushi/spring-boot-gemfire-server/master/scslib/gemfire-sink-rabbit-1.0.0.BUILD-SNAPSHOT.jar
 
 stream create --name http2gem --definition "http | gemfire --hostAddresses=10.254.0.10:10334 --regionName=RegionRaw --json=true --keyExpression=payload.getField('uuid')" --deploy
+
+http post --target http://http2gem-http.cfapps.io --contentType "application/json" --data "{\"uuid\":\"7a49cba6-d3fc-47a4-8e1a-c2503b8144e1\",\"route\":\"C161.137_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
+
+http post --target http://http2gem-http.cfapps.io --contentType "application/json" --data "{\"uuid\":\"7a49cba6-d3fc-47a4-8e1a-c2503b8144e3\",\"route\":\"C161.139_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
 ```
 
 ## Run with Spring Cloud Data Flow Local Server
@@ -225,7 +231,9 @@ app register --name gemfire --type sink --uri file://<local_file_location>/gemfi
 
 stream create http2gem --definition "http --server.port=9000 | gemfire --regionName=RegionRaw --json=true --keyExpression=payload.getField('uuid')" --deploy
 
-http post --target http://localhost:9000  --contentType "application/json" --data "{\"uuid\":\"7a49cba6-d3fc-47a4-8e1a-c2503b8144e1\",\"route\":\"C161.137_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
+http post --target http://localhost:9000 --contentType "application/json" --data "{\"uuid\":\"7a49cba6-d3fc-47a4-8e1a-c2503b8144e1\",\"route\":\"C161.137_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
+
+http post --target http://localhost:9000 --contentType "application/json" --data "{\"uuid\":\"7a49cba6-d3fc-47a4-8e1a-c2503b8144e3\",\"route\":\"C161.139_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
 
 ```
 
