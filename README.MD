@@ -1,8 +1,8 @@
-## Reference
+# Reference
 Thanks to John Blum, I learned a lot from his demo.
 https://github.com/jxblum/pivotal-gemfire-clientserver-examples
 
-## Quick Start Steps 
+# Quick Start Steps 
 
 ## Download and Build
 
@@ -201,12 +201,50 @@ Run it with java cli to test with gfsh again - works for the currenct pom.xml.
 java -jar target/spring-boot-gemfire-server-0.0.1-SNAPSHOT.jar
 ```
 
-## Deploy to Cloud Foundry
+## Deploy to Cloud Foundry and Run with Spring Cloud Dataflow
 
 Health check is bad for none-web apps in the current CF.
 
 ```
-cf push spring-boot-gemfire --no-start -p spring-boot135-gemfire-server-0.0.1-SNAPSHOT.jar
+cf push spring-boot-gemfire --no-start -p target/spring-boot-gemfire-server-0.0.1-SNAPSHOT.jar
 cf set-health-check spring-boot-gemfire 'none'
 cf start spring-boot-gemfire
+```
+
+```
+app register --name gemfire --type sink --uri http://repo.spring.io/snapshot/org/springframework/cloud/stream/app/gemfire-sink-rabbit/1.0.0.BUILD-SNAPSHOT/gemfire-sink-rabbit-1.0.0.BUILD-20160621.142107-179.jar
+
+
+stream create --name http2gem --definition "http | gemfire --hostAddresses=10.254.0.10:10334 --regionName=RegionRaw --json=true --keyExpression=payload.getField('uuid')" --deploy
+```
+
+## Run with Spring Cloud Data Flow Local Server
+
+```
+app register --name gemfire --type sink --uri file://<local_file_location>/gemfire-sink-rabbit-1.0.0.BUILD-SNAPSHOT.jar
+
+stream create http2gem --definition "http --server.port=9000 | gemfire --regionName=RegionRaw --json=true --keyExpression=payload.getField('uuid')" --deploy
+
+http post --target http://localhost:9000  --contentType "application/json" --data "{\"uuid\":\"7a49cba6-d3fc-47a4-8e1a-c2503b8144e1\",\"route\":\"C161.137_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
+
+```
+
+
+## Run with Spring XD
+
+
+```
+stream create test --definition "http --port=9000 | gemfire-json-server --regionName=RegionRaw --host=localhost --port=10334 --useLocator=true --keyExpression=payload.getField('uuid')" --deploy
+
+http post --target http://localhost:9000  --contentType "application/json" --data "{\"uuid\":\"7a49cba6-d3fc-47a4-8e1a-c2503b8144e1\",\"route\":\"C161.137_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
+
+http post --target http://localhost:9000  --contentType "application/json" --data "{\"uuid\":\"7a49cba6-d3fc-47a4-8e1a-c2503b8144e2\",\"route\":\"C161.138_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
+
+http post --target http://localhost:9000  --contentType "application/json" --data "{\"uuid\":\"7a49cba6-d3fc-47a4-8e1a-c2503b8144e3\",\"route\":\"C161.139_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
+
+http post --target http://localhost:9000  --contentType "application/json" --data "{\"uuid\":\"7a49cba6-d3fc-47a4-8e1a-c2503b8144e4\",\"route\":\"C161.140_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
+
+http post --target http://localhost:9000  --contentType "application/json" --data "{\"uuid\":\"7a29cba7-d3fc-47a4-8e1a-c2503b8144e4\",\"route\":\"C161.140_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
+
+http post --target http://localhost:9000  --contentType "application/json" --data "{\"uuid\":\"7a49cee6-d3fc-47a4-8e1a-c2503b8144e1\",\"route\":\"C161.137_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
 ```

@@ -35,13 +35,13 @@ import com.gemstone.gemfire.cache.ExpirationAttributes;
 @EnableConfigurationProperties(GemfireProperties.class)
 public class GemfireCacheServerConfiguration {
 
+    // Gemfire Locator and Server Configurations
+
     @Autowired
     private GemfireProperties properties;
 
     @Bean
     CacheServerFactoryBean gemfireCacheServer (Cache gemfireCache) {
-
-
 
         CacheServerFactoryBean gemfireCacheServer = new CacheServerFactoryBean();
 
@@ -87,6 +87,8 @@ public class GemfireCacheServerConfiguration {
         
         return gemfireProperties;
     }
+
+    // RegionRaw Configurations
 
     @Bean
     PartitionedRegionFactoryBean<String, Object> rawRegion(Cache gemfireCache,
@@ -147,5 +149,50 @@ public class GemfireCacheServerConfiguration {
 
 
         return asyncEventQueue;
+    }
+
+    // RegionCount Configurations
+
+    @Bean
+    PartitionedRegionFactoryBean<String, Integer> countRegion(Cache gemfireCache)
+    {
+        PartitionedRegionFactoryBean<String, Integer> countRegion = new PartitionedRegionFactoryBean<>();
+
+        countRegion.setCache(gemfireCache);
+        countRegion.setClose(false);
+        countRegion.setName("RegionCount");
+        countRegion.setPersistent(false);
+
+        return countRegion;
+    }
+
+    // RegionTop Configurations
+
+    @Bean
+    PartitionedRegionFactoryBean<Integer, Object> topRegion(Cache gemfireCache)
+    {
+        PartitionedRegionFactoryBean<Integer, Object> topRegion = new PartitionedRegionFactoryBean<>();
+
+        topRegion.setCache(gemfireCache);
+        topRegion.setClose(false);
+        topRegion.setName("RegionTop");
+        topRegion.setPersistent(false);
+
+        return topRegion;
+    }
+
+    // RegionTopTen Configurations
+
+    @Bean
+    PartitionedRegionFactoryBean<Integer, Object> topTenRegion(Cache gemfireCache)
+    {
+        PartitionedRegionFactoryBean<Integer, Object> topTenRegion = new PartitionedRegionFactoryBean<>();
+
+        topTenRegion.setCache(gemfireCache);
+        topTenRegion.setClose(false);
+        topTenRegion.setName("RegionTopTen");
+        topTenRegion.setPersistent(false);
+
+        return topTenRegion;
     }
 }
