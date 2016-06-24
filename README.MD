@@ -1,8 +1,8 @@
-# Reference
+# I. Reference
 Thanks to John Blum, I learned a lot from his demo.
 https://github.com/jxblum/pivotal-gemfire-clientserver-examples
 
-# Quick Start Steps 
+# II. Quick Start Steps 
 
 ## Download and Build
 
@@ -12,7 +12,7 @@ cd spring-boot-gemfire-server
 mvn clean package -DskipTests
 ```
 
-## Run with Maven
+## 1. Run with Maven
 
 ### which works fine, please play with gfsh.
 
@@ -44,7 +44,7 @@ Message    : Cannot find regions <[/fact]> in any of the members
 NEXT_STEP_NAME : END
 ```
 
-## Run in java cli
+## 2. Run in java cli
 
 ```
 java -jar target/spring-boot-gemfire-server-0.0.1-SNAPSHOT.jar
@@ -191,40 +191,16 @@ tar -zxvf gemfire-classes.tar.gz
 ```
 
 ```
-jar -uvf target/spring-boot-gemfire-server-0.0.1-SNAPSHOT.jar com/gemstone/gemfire/management/internal/cli/commands/
-jar -uvf target/spring-boot-gemfire-server-0.0.1-SNAPSHOT.jar com/gemstone/gemfire/management/internal/cli/converters/
-jar -uvf target/spring-boot-gemfire-server-0.0.1-SNAPSHOT.jar org/springframework/shell/converters/
+./patch-jar.sh
 ```
 
 Run it with java cli to test with gfsh again - works for the currenct pom.xml.
+
 ```
 java -jar target/spring-boot-gemfire-server-0.0.1-SNAPSHOT.jar
 ```
 
-## Deploy to Cloud Foundry and Run with Spring Cloud Dataflow
-
-Health check is bad for none-web apps in the current CF.
-
-```
-cf push spring-boot-gemfire --no-start -p target/spring-boot-gemfire-server-0.0.1-SNAPSHOT.jar
-cf set-health-check spring-boot-gemfire 'none'
-cf start spring-boot-gemfire
-```
-
-In dataflow shell
-```
-dataflow config server http://<dataflow_server_name>.cfapps.io
-
-app register --name gemfire --type sink --uri https://rawgit.com/komushi/spring-boot-gemfire-server/master/scslib/gemfire-sink-rabbit-1.0.0.BUILD-SNAPSHOT.jar
-
-stream create --name http2gem --definition "http | gemfire --hostAddresses=10.10.114.60:10334 --regionName=RegionRaw --json=true --keyExpression=payload.getField('uuid')" --deploy
-
-http post --target http://http2gem-http.cfapps.io --contentType "application/json" --data "{\"uuid\":\"7a49cba6-d3fc-47a4-8e1a-c2503b8144e1\",\"route\":\"C161.137_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
-
-http post --target http://http2gem-http.cfapps.io --contentType "application/json" --data "{\"uuid\":\"7a49cba6-d3fc-47a4-8e1a-c2503b8144e3\",\"route\":\"C161.139_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
-```
-
-## Run with Spring Cloud Data Flow Local Server
+## 3. Run with Spring Cloud Data Flow Local Server
 
 ```
 app register --name gemfire --type sink --uri file://<local_file_location>/gemfire-sink-rabbit-1.0.0.BUILD-SNAPSHOT.jar
@@ -237,8 +213,7 @@ http post --target http://localhost:9000 --contentType "application/json" --data
 
 ```
 
-
-## Run with Spring XD
+## 4. Run with Spring XD
 
 
 ```
@@ -255,4 +230,32 @@ http post --target http://localhost:9000  --contentType "application/json" --dat
 http post --target http://localhost:9000  --contentType "application/json" --data "{\"uuid\":\"7a29cba7-d3fc-47a4-8e1a-c2503b8144e4\",\"route\":\"C161.140_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
 
 http post --target http://localhost:9000  --contentType "application/json" --data "{\"uuid\":\"7a49cee6-d3fc-47a4-8e1a-c2503b8144e1\",\"route\":\"C161.137_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
+```
+
+## 5. Deploy to Cloud Foundry and Run with Spring Cloud Dataflow
+
+Health check is bad for none-web apps in the current CF.
+
+```
+cf push spring-boot-gemfire -k 2G -m 1G -u none --no-start -p target/spring-boot-gemfire-server-0.0.1-SNAPSHOT.jar
+cf start spring-boot-gemfire
+```
+
+In dataflow shell
+```
+dataflow config server http://<dataflow_server_name>.cfapps.io
+
+app register --name http --type source --uri maven://org.springframework.cloud.stream.app:http-source-rabbit:1.0.0.BUILD-SNAPSHOT
+
+app register --name gemfire --type sink --uri https://rawgit.com/komushi/spring-cloud-stream/master/gemfire-sink-rabbit-1.0.0.BUILD-SNAPSHOT.jar
+
+stream create --name http2gem --definition "http | gemfire --hostAddresses=10.65.168.47:60498 --regionName=RegionRaw --json=true --keyExpression=payload.getField('uuid')" --deploy
+
+http post --target http://http2gem-http.cfapps.io --contentType "application/json" --data "{\"uuid\":\"7a49cba6-d3fc-47a4-8e1a-c2503b8144e1\",\"route\":\"C161.137_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
+
+http post --target http://http2gem-http.cfapps.io --contentType "application/json" --data "{\"uuid\":\"7a49cba6-d3fc-47a4-8e1a-c2503b8144e3\",\"route\":\"C161.139_C163.155\",\"timestamp\":1466087441276,\"pickupLatitude\":40.860326,\"pickupLongitude\":-73.967758,\"dropoffLatitude\":40.779728,\"dropoffLongitude\":-73.955383,\"pickupDatetime\":\"2013-01-01 00:00:00\",\"dropoffDatetime\":\"2013-01-01 00:04:00\"}"
+```
+
+```
+cf create-security-group local https://rawgit.com/komushi/spring-boot-gemfire-server/master/rules.json
 ```
