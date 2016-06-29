@@ -21,6 +21,8 @@ public class GemfireProperties {
 
     private static final String DEFAULT_LOCATOR_ADDRESS = "localhost[10334]";
 
+    private static final String DEFAULT_START_JMX = "false";
+
     private Boolean autoStartuo;
 
     private String bindAddress;
@@ -38,6 +40,8 @@ public class GemfireProperties {
     private String locatorAddress;
 
     private String jmxManagerPort;
+
+    private String startJmx;
 
     public void setAutoStartuo(Boolean autoStartuo) {
         this.autoStartuo = autoStartuo;
@@ -151,6 +155,17 @@ public class GemfireProperties {
         }
     }
 
+    public void setStartJmx(String startJmx) {
+        this.startJmx = startJmx;
+    }
 
+    public String getStartJmx() {
+        if (this.startJmx == null) {
+            return DEFAULT_START_JMX;
+        }
+        else {
+            return this.startJmx;
+        }
+    }
 
 }

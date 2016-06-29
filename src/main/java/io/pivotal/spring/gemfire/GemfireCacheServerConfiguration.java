@@ -77,7 +77,7 @@ public class GemfireCacheServerConfiguration {
         gemfireProperties.setProperty("start-locator", properties.getLocatorAddress());
         gemfireProperties.setProperty("jmx-manager", "true");
         gemfireProperties.setProperty("jmx-manager-port", properties.getJmxManagerPort());
-        gemfireProperties.setProperty("jmx-manager-start", "true");
+        gemfireProperties.setProperty("jmx-manager-start", properties.getStartJmx());
 
         String logFile = properties.getLogFile();
 
