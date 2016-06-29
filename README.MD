@@ -186,11 +186,6 @@ Caused by: java.lang.IllegalStateException: Required Commands classes were not l
 Thanks to Carlos(https://github.com/caxqueiroz, I learned a lot from him.) I managed to have a temproray solution to work round the gemfire/geode bug - adding those classes in the build jar.
 
 ```
-tar -zxvf spring-shell-classes.tar.gz
-tar -zxvf gemfire-classes.tar.gz
-```
-
-```
 ./patch-jar.sh
 ```
 
