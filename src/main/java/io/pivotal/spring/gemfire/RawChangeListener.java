@@ -161,17 +161,19 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
 
         JSONObject jsonObj = new JSONObject();
         long timstamp = (long)raw.getField("timestamp");
+        String uuid = (String)raw.getField("uuid");
         long delay = (Calendar.getInstance().getTimeInMillis() - timstamp);
 
-        jsonObj.put("pickupDatetime", raw.getField("pickupDatetime"))
-                .put("dropoffDatetime", raw.getField("dropoffDatetime"));
+        // jsonObj.put("pickupDatetime", raw.getField("pickupDatetime"))
+        //         .put("dropoffDatetime", raw.getField("dropoffDatetime"));
 
 
         Set<Integer> keySet = regionTop.keySet();
 
         List<Integer> keyList = new ArrayList<Integer>(keySet);
         Collections.sort(keyList, Collections.reverseOrder());
-        Integer count = 0;
+
+        LinkedList<JSONObject> topTenList = new LinkedList();
 
         for (Iterator<Integer> iter = keyList.iterator(); iter.hasNext();) {
 
@@ -181,41 +183,63 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
             ListIterator<String> listIterator = routes.listIterator();
 
             while (listIterator.hasNext()) {
-                count++;
-                String startCellKey = "start_cell_id_" + count;
-                String endCellKey = "end_cell_id_" + count;
+
                 String route = listIterator.next();
                 String[] routeArray = route.split("_");
                 String startCellValue = routeArray[0];
                 String endCellValue = routeArray[1];
-                jsonObj.put(startCellKey, startCellValue);
-                jsonObj.put(endCellKey, endCellValue);
 
-                if (count > 10)
+                JSONObject topTenElement = new JSONObject();
+
+                topTenElement.put("rank", topTenList.size() + 1);
+                topTenElement.put("count", key);
+                topTenElement.put("from", startCellValue);
+                topTenElement.put("to", endCellValue);
+
+                topTenList.addLast(topTenElement);
+
+                if (topTenList.size() >= 10)
                 {
                     break;
                 }
             }
 
-            if (count > 10)
+            if (topTenList.size() >= 10)
             {
                 break;
             }
         }
 
-
-        for (count++;count <= 10;count++)
-        {
-            String startCellKey = "start_cell_id_" + count;
-            String endCellKey = "end_cell_id_" + count;
-            jsonObj.put(startCellKey, "null");
-            jsonObj.put(endCellKey, "null");
-        }
-
+        jsonObj.put("uuid", uuid);
         jsonObj.put("delay", delay);
+        jsonObj.put("timstamp", timstamp);
+        jsonObj.put("toptenlist", topTenList);
+        
+        
 
         return JSONFormatter.fromJSON(jsonObj.toString());
 
+    }
+
+
+    private boolean differTopTen(PdxInstance crtRegionTopTenValue, PdxInstance newRegionTopTenValue){
+
+        if (crtRegionTopTenValue == null && newRegionTopTenValue!= null)
+        {
+            return true;
+        }
+
+        if (crtRegionTopTenValue != null && newRegionTopTenValue== null)
+        {
+            return true;
+        }
+
+        if (!crtRegionTopTenValue.getField("uuid").equals(newRegionTopTenValue.getField("uuid")))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     // TODO
@@ -233,101 +257,164 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
 
     }
 
-    private boolean differTopTen(PdxInstance crtRegionTopTenValue, PdxInstance newRegionTopTenValue)
-    {
-        if (crtRegionTopTenValue == null && newRegionTopTenValue!= null)
-        {
-            return true;
-        }
+    // private PdxInstance generateTopTenJson() throws Exception{
 
-        if (crtRegionTopTenValue != null && newRegionTopTenValue== null)
-        {
-            return true;
-        }
+    //     JSONObject jsonObj = new JSONObject();
+    //     long timstamp = (long)raw.getField("timestamp");
+    //     long delay = (Calendar.getInstance().getTimeInMillis() - timstamp);
 
-        if (!crtRegionTopTenValue.getField("start_cell_id_1").equals(newRegionTopTenValue.getField("start_cell_id_1")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("end_cell_id_1").equals(newRegionTopTenValue.getField("end_cell_id_1")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("start_cell_id_2").equals(newRegionTopTenValue.getField("start_cell_id_2")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("end_cell_id_2").equals(newRegionTopTenValue.getField("end_cell_id_2")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("start_cell_id_3").equals(newRegionTopTenValue.getField("start_cell_id_3")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("end_cell_id_3").equals(newRegionTopTenValue.getField("end_cell_id_3")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("start_cell_id_4").equals(newRegionTopTenValue.getField("start_cell_id_4")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("end_cell_id_4").equals(newRegionTopTenValue.getField("end_cell_id_4")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("start_cell_id_5").equals(newRegionTopTenValue.getField("start_cell_id_5")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("end_cell_id_5").equals(newRegionTopTenValue.getField("end_cell_id_5")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("start_cell_id_6").equals(newRegionTopTenValue.getField("start_cell_id_6")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("end_cell_id_6").equals(newRegionTopTenValue.getField("end_cell_id_6")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("start_cell_id_7").equals(newRegionTopTenValue.getField("start_cell_id_7")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("end_cell_id_7").equals(newRegionTopTenValue.getField("end_cell_id_7")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("start_cell_id_8").equals(newRegionTopTenValue.getField("start_cell_id_8")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("end_cell_id_8").equals(newRegionTopTenValue.getField("end_cell_id_8")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("start_cell_id_9").equals(newRegionTopTenValue.getField("start_cell_id_9")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("end_cell_id_9").equals(newRegionTopTenValue.getField("end_cell_id_9")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("start_cell_id_10").equals(newRegionTopTenValue.getField("start_cell_id_10")))
-        {
-            return true;
-        }
-        else if (!crtRegionTopTenValue.getField("end_cell_id_10").equals(newRegionTopTenValue.getField("end_cell_id_10")))
-        {
-            return true;
-        }
+    //     jsonObj.put("pickupDatetime", raw.getField("pickupDatetime"))
+    //             .put("dropoffDatetime", raw.getField("dropoffDatetime"));
 
-        return false;
-    }
+
+    //     Set<Integer> keySet = regionTop.keySet();
+
+    //     List<Integer> keyList = new ArrayList<Integer>(keySet);
+    //     Collections.sort(keyList, Collections.reverseOrder());
+    //     Integer count = 0;
+
+    //     for (Iterator<Integer> iter = keyList.iterator(); iter.hasNext();) {
+
+    //         Integer key = iter.next();
+    //         PdxInstance regionTopValue = regionTop.get(key);
+    //         LinkedList<String> routes = (LinkedList<String>)regionTopValue.getField("routes");
+    //         ListIterator<String> listIterator = routes.listIterator();
+
+    //         while (listIterator.hasNext()) {
+    //             count++;
+    //             String startCellKey = "start_cell_id_" + count;
+    //             String endCellKey = "end_cell_id_" + count;
+    //             String route = listIterator.next();
+    //             String[] routeArray = route.split("_");
+    //             String startCellValue = routeArray[0];
+    //             String endCellValue = routeArray[1];
+    //             jsonObj.put(startCellKey, startCellValue);
+    //             jsonObj.put(endCellKey, endCellValue);
+
+    //             if (count > 10)
+    //             {
+    //                 break;
+    //             }
+    //         }
+
+    //         if (count > 10)
+    //         {
+    //             break;
+    //         }
+    //     }
+
+
+    //     for (count++;count <= 10;count++)
+    //     {
+    //         String startCellKey = "start_cell_id_" + count;
+    //         String endCellKey = "end_cell_id_" + count;
+    //         jsonObj.put(startCellKey, "null");
+    //         jsonObj.put(endCellKey, "null");
+    //     }
+
+    //     jsonObj.put("delay", delay);
+
+    //     return JSONFormatter.fromJSON(jsonObj.toString());
+
+    // }
+
+
+
+    // private boolean differTopTen(PdxInstance crtRegionTopTenValue, PdxInstance newRegionTopTenValue)
+    // {
+    //     if (crtRegionTopTenValue == null && newRegionTopTenValue!= null)
+    //     {
+    //         return true;
+    //     }
+
+    //     if (crtRegionTopTenValue != null && newRegionTopTenValue== null)
+    //     {
+    //         return true;
+    //     }
+
+    //     if (!crtRegionTopTenValue.getField("start_cell_id_1").equals(newRegionTopTenValue.getField("start_cell_id_1")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("end_cell_id_1").equals(newRegionTopTenValue.getField("end_cell_id_1")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("start_cell_id_2").equals(newRegionTopTenValue.getField("start_cell_id_2")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("end_cell_id_2").equals(newRegionTopTenValue.getField("end_cell_id_2")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("start_cell_id_3").equals(newRegionTopTenValue.getField("start_cell_id_3")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("end_cell_id_3").equals(newRegionTopTenValue.getField("end_cell_id_3")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("start_cell_id_4").equals(newRegionTopTenValue.getField("start_cell_id_4")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("end_cell_id_4").equals(newRegionTopTenValue.getField("end_cell_id_4")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("start_cell_id_5").equals(newRegionTopTenValue.getField("start_cell_id_5")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("end_cell_id_5").equals(newRegionTopTenValue.getField("end_cell_id_5")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("start_cell_id_6").equals(newRegionTopTenValue.getField("start_cell_id_6")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("end_cell_id_6").equals(newRegionTopTenValue.getField("end_cell_id_6")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("start_cell_id_7").equals(newRegionTopTenValue.getField("start_cell_id_7")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("end_cell_id_7").equals(newRegionTopTenValue.getField("end_cell_id_7")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("start_cell_id_8").equals(newRegionTopTenValue.getField("start_cell_id_8")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("end_cell_id_8").equals(newRegionTopTenValue.getField("end_cell_id_8")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("start_cell_id_9").equals(newRegionTopTenValue.getField("start_cell_id_9")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("end_cell_id_9").equals(newRegionTopTenValue.getField("end_cell_id_9")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("start_cell_id_10").equals(newRegionTopTenValue.getField("start_cell_id_10")))
+    //     {
+    //         return true;
+    //     }
+    //     else if (!crtRegionTopTenValue.getField("end_cell_id_10").equals(newRegionTopTenValue.getField("end_cell_id_10")))
+    //     {
+    //         return true;
+    //     }
+
+    //     return false;
+    // }
 
     private void processRanking(String route, Integer originalCount, Integer newCount) throws Exception{
         System.out.println("RawChangeListener: processRanking " + route + " originalCount: " + originalCount + " newCount: " + newCount);
