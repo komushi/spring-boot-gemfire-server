@@ -439,6 +439,18 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
         try{
             for(AsyncEvent event: events) {
 
+                Operation operation =  event.getOperation();
+                Integer countDiff = 0;
+
+                if(operation.equals(Operation.PUTALL_CREATE)){
+                    countDiff = 1;
+                }else if(operation.equals(Operation.DESTROY)){
+                    countDiff = -1;
+                }else{
+                    System.out.println("unknown ooperation " + event.getOperation());
+                    continue;
+                }
+
                 queryService = event.getRegion().getRegionService().getQueryService();
 
                 regionCount = event.getRegion().getRegionService().getRegion("RegionCount");
@@ -452,16 +464,7 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
                 String route = (String)raw.getField("route");
 
 
-                Integer countDiff = 0;
-                if(event.getOperation().equals(Operation.PUTALL_CREATE)){
-                    countDiff = 1;
-                }else if(event.getOperation().equals(Operation.DESTROY)){
-                    countDiff = -1;
-                }else{
-                    System.out.println("unknown ooperation " + event.getOperation());
-                }
-
-                // TODO remove while loop for single queue implementation
+                // TODO remove while loop for single event implementation
 
                 try{
                     transactionProcessing(event, route, countDiff);
