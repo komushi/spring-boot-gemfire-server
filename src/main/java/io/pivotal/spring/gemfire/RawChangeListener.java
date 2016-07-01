@@ -6,8 +6,10 @@ import com.gemstone.gemfire.cache.asyncqueue.AsyncEventListener;
 import com.gemstone.gemfire.cache.query.Query;
 import com.gemstone.gemfire.cache.query.QueryService;
 import com.gemstone.gemfire.cache.query.SelectResults;
+import com.gemstone.gemfire.management.internal.cli.commands.PDXCommands;
 import com.gemstone.gemfire.pdx.JSONFormatter;
 import com.gemstone.gemfire.pdx.PdxInstance;
+import com.gemstone.org.json.JSONException;
 import com.gemstone.org.json.JSONObject;
 
 import java.util.*;
@@ -234,10 +236,50 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
             return true;
         }
 
-        if (!crtRegionTopTenValue.getField("uuid").equals(newRegionTopTenValue.getField("uuid")))
-        {
+//        if (!crtRegionTopTenValue.getField("uuid").equals(newRegionTopTenValue.getField("uuid")))
+//        {
+//            return true;
+//        }
+
+
+
+        LinkedList<PdxInstance> crtTopTenList = (LinkedList)crtRegionTopTenValue.getField("toptenlist");
+        LinkedList<PdxInstance> newTopTenList = (LinkedList)newRegionTopTenValue.getField("toptenlist");
+
+        if (crtTopTenList.size() != newTopTenList.size()) {
             return true;
         }
+
+        for(int num=0; num < crtTopTenList.size(); num++)
+        {
+            try {
+                JSONObject crtTopTenElement = new JSONObject(JSONFormatter.toJSON(crtTopTenList.get(num)));
+                JSONObject newTopTenElement = new JSONObject(JSONFormatter.toJSON(newTopTenList.get(num)));
+
+                if (crtTopTenElement.getInt("rank") != newTopTenElement.getInt("rank")) {
+                    return true;
+                }
+
+                if (crtTopTenElement.getInt("count") != newTopTenElement.getInt("count")) {
+                    return true;
+                }
+
+                if (!crtTopTenElement.getString("from").equals(newTopTenElement.getString("from"))) {
+                    return true;
+                }
+
+                if (!crtTopTenElement.getString("to").equals(newTopTenElement.getString("to"))) {
+                    return true;
+                }
+            }
+            catch (JSONException e) {
+                return true;
+            }
+
+        }
+
+
+
 
         return false;
     }
