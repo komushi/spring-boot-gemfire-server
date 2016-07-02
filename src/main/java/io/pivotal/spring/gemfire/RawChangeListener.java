@@ -162,9 +162,10 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
     private PdxInstance generateTopTenJson() throws Exception{
 
         JSONObject jsonObj = new JSONObject();
-        long timstamp = (long)raw.getField("timestamp");
-        String uuid = (String)raw.getField("uuid");
-        long delay = (Calendar.getInstance().getTimeInMillis() - timstamp);
+        long crtTimestamp = (long)raw.getField("timestamp");
+        String crtUuid = (String)raw.getField("uuid");
+        String crtRoute = (String)raw.getField("route");
+        long delay = (Calendar.getInstance().getTimeInMillis() - crtTimestamp);
 
         // jsonObj.put("pickupDatetime", raw.getField("pickupDatetime"))
         //         .put("dropoffDatetime", raw.getField("dropoffDatetime"));
@@ -212,9 +213,20 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
             }
         }
 
-        jsonObj.put("uuid", uuid);
+        PdxInstance regionCountValue = (PdxInstance)regionCount.get(crtRoute);
+        Integer routeCount = ((Byte)regionCountValue.getField("route_count")).intValue();
+
+
+        String[] crtRouteArray = crtRoute.split("_");
+        String crtStartCellValue = crtRouteArray[0];
+        String crtEndCellValue = crtRouteArray[1];
+
+        jsonObj.put("from", crtStartCellValue);
+        jsonObj.put("to", crtEndCellValue);
+        jsonObj.put("count", routeCount);
+        jsonObj.put("uuid", crtUuid);
         jsonObj.put("delay", delay);
-        jsonObj.put("timstamp", timstamp);
+        jsonObj.put("timestamp", crtTimestamp);
         jsonObj.put("toptenlist", topTenList);
         
         
