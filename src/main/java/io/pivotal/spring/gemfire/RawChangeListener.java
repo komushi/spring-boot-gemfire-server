@@ -159,16 +159,28 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
 
     }
 
+    private Integer addNodeToNodes(LinkedList<JSONObject> nodes, JSONObject nodeElement) throws Exception{
+
+        for(int num=0; num < nodes.size(); num++) {
+            JSONObject crtNode = nodes.get(num);
+
+            if (crtNode.getString("name").equals(nodeElement.getString("name"))) {
+                return num;
+            }
+        }
+
+        nodes.addLast(nodeElement);
+
+        return nodes.size() - 1;
+    }
+
     private PdxInstance generateTopTenJson() throws Exception{
 
-        JSONObject jsonObj = new JSONObject();
+        JSONObject toptenJson = new JSONObject();
         long crtTimestamp = (long)raw.getField("timestamp");
         String crtUuid = (String)raw.getField("uuid");
         String crtRoute = (String)raw.getField("route");
         long delay = (Calendar.getInstance().getTimeInMillis() - crtTimestamp);
-
-        // jsonObj.put("pickupDatetime", raw.getField("pickupDatetime"))
-        //         .put("dropoffDatetime", raw.getField("dropoffDatetime"));
 
 
         Set<Integer> keySet = regionTop.keySet();
@@ -176,7 +188,14 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
         List<Integer> keyList = new ArrayList<Integer>(keySet);
         Collections.sort(keyList, Collections.reverseOrder());
 
+        // top ten list for gui table
         LinkedList<JSONObject> topTenList = new LinkedList();
+
+
+        // top ten matrix for d3 matrix
+        JSONObject matrix = new JSONObject();
+        LinkedList<JSONObject> nodes = new LinkedList();
+        LinkedList<JSONObject> links = new LinkedList();
 
         for (Iterator<Integer> iter = keyList.iterator(); iter.hasNext();) {
 
@@ -189,17 +208,37 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
 
                 String route = listIterator.next();
                 String[] routeArray = route.split("_");
-                String startCellValue = routeArray[0];
-                String endCellValue = routeArray[1];
+                String fromCellValue = routeArray[0];
+                String toCellValue = routeArray[1];
 
+                // top ten list element
                 JSONObject topTenElement = new JSONObject();
-
                 topTenElement.put("rank", topTenList.size() + 1);
                 topTenElement.put("count", key);
-                topTenElement.put("from", startCellValue);
-                topTenElement.put("to", endCellValue);
+                topTenElement.put("from", fromCellValue);
+                topTenElement.put("to", toCellValue);
 
                 topTenList.addLast(topTenElement);
+
+                // top ten matrix element
+                JSONObject fromNodeElement = new JSONObject();
+                JSONObject toNodeElement = new JSONObject();
+                JSONObject linkElement = new JSONObject();
+
+                fromNodeElement.put("name", fromCellValue);
+                fromNodeElement.put("group", 1);
+
+                toNodeElement.put("name", toCellValue);
+                toNodeElement.put("group", 1);
+
+                Integer fromPosition = addNodeToNodes(nodes, fromNodeElement);
+                Integer toPosition = addNodeToNodes(nodes, toNodeElement);
+
+                linkElement.put("source", fromPosition);
+                linkElement.put("target", toPosition);
+                linkElement.put("value", key);
+
+                links.addLast(linkElement);
 
                 if (topTenList.size() >= 10)
                 {
@@ -213,25 +252,31 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
             }
         }
 
+        // get current raw entry value and set to region top ten
         PdxInstance regionCountValue = (PdxInstance)regionCount.get(crtRoute);
         Integer routeCount = ((Byte)regionCountValue.getField("route_count")).intValue();
 
 
         String[] crtRouteArray = crtRoute.split("_");
-        String crtStartCellValue = crtRouteArray[0];
-        String crtEndCellValue = crtRouteArray[1];
+        String crtFromCellValue = crtRouteArray[0];
+        String crtToCellValue = crtRouteArray[1];
 
-        jsonObj.put("from", crtStartCellValue);
-        jsonObj.put("to", crtEndCellValue);
-        jsonObj.put("count", routeCount);
-        jsonObj.put("uuid", crtUuid);
-        jsonObj.put("delay", delay);
-        jsonObj.put("timestamp", crtTimestamp);
-        jsonObj.put("toptenlist", topTenList);
-        
-        
+        toptenJson.put("from", crtFromCellValue);
+        toptenJson.put("to", crtToCellValue);
+        toptenJson.put("count", routeCount);
+        toptenJson.put("uuid", crtUuid);
+        toptenJson.put("delay", delay);
+        toptenJson.put("timestamp", crtTimestamp);
 
-        return JSONFormatter.fromJSON(jsonObj.toString());
+        // set toptenlist
+        toptenJson.put("toptenlist", topTenList);
+
+        // set matrix
+        matrix.put("nodes", nodes);
+        matrix.put("links", links);
+        toptenJson.put("matrix", matrix);
+
+        return JSONFormatter.fromJSON(toptenJson.toString());
 
     }
 
@@ -247,12 +292,6 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
         {
             return true;
         }
-
-//        if (!crtRegionTopTenValue.getField("uuid").equals(newRegionTopTenValue.getField("uuid")))
-//        {
-//            return true;
-//        }
-
 
 
         LinkedList<PdxInstance> crtTopTenList = (LinkedList)crtRegionTopTenValue.getField("toptenlist");
