@@ -165,6 +165,13 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
             JSONObject crtNode = nodes.get(num);
 
             if (crtNode.getString("name").equals(nodeElement.getString("name"))) {
+
+
+                if (!crtNode.has("rank")) {
+                    if (nodeElement.has("rank")) {
+                        crtNode.put("rank", nodeElement.getInt("rank"));
+                    }
+                }
                 return num;
             }
         }
@@ -197,7 +204,11 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
         LinkedList<JSONObject> nodes = new LinkedList();
         LinkedList<JSONObject> links = new LinkedList();
 
+        Integer rank = 0;
+
         for (Iterator<Integer> iter = keyList.iterator(); iter.hasNext();) {
+            
+//            rank++;
 
             Integer key = iter.next();
             PdxInstance regionTopValue = regionTop.get(key);
@@ -206,6 +217,8 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
 
             while (listIterator.hasNext()) {
 
+                rank++;
+
                 String route = listIterator.next();
                 String[] routeArray = route.split("_");
                 String fromCellValue = routeArray[0];
@@ -213,7 +226,8 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
 
                 // top ten list element
                 JSONObject topTenElement = new JSONObject();
-                topTenElement.put("rank", topTenList.size() + 1);
+//                topTenElement.put("rank", topTenList.size() + 1);
+                topTenElement.put("rank", rank);
                 topTenElement.put("count", key);
                 topTenElement.put("from", fromCellValue);
                 topTenElement.put("to", toCellValue);
@@ -226,10 +240,9 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
                 JSONObject linkElement = new JSONObject();
 
                 fromNodeElement.put("name", fromCellValue);
-                fromNodeElement.put("group", 1);
+                fromNodeElement.put("rank", rank);
 
                 toNodeElement.put("name", toCellValue);
-                toNodeElement.put("group", 1);
 
                 Integer fromPosition = addNodeToNodes(nodes, fromNodeElement);
                 Integer toPosition = addNodeToNodes(nodes, toNodeElement);
