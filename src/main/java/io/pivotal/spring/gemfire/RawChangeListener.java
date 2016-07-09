@@ -62,9 +62,9 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
 
         PdxInstance pdxObj = (PdxInstance)regionTop.get(originalCount);
         LinkedList routes = (LinkedList)pdxObj.getField("routes");
-        System.out.println("RawChangeListener: removeRouteFromOldRank " + route + " " + originalCount + " originalRoutes: " + routes);
+        System.out.println("RawChangeListener: removeRouteFromOldRank route:" + route + " originalCount: " + originalCount);
         routes.remove(route);
-        System.out.println("updateRoutes: " + routes);
+        // System.out.println("updateRoutes: " + routes);
 
         if (routes.size() == 0)
         {
@@ -166,12 +166,30 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
 
             if (crtNode.getString("name").equals(nodeElement.getString("name"))) {
 
+                Integer crtGroup = crtNode.getInt("group");
+                Integer newGroup = nodeElement.getInt("group");
+                // var crtRank = crtNode.getInt("rank");
+                // var newRank = nodeElement.getInt("rank");
 
-                if (!crtNode.has("rank")) {
-                    if (nodeElement.has("rank")) {
-                        crtNode.put("rank", nodeElement.getInt("rank"));
+                if (crtGroup < newGroup) {                    
+                    crtNode.put("group", newGroup);
+                    crtNode.put("rank", nodeElement.getInt("rank"));
+                } else if (crtGroup == newGroup) {
+                    if (crtNode.has("rank")) {
+                        Integer crtRank = crtNode.getInt("rank");
+                        Integer newRank = nodeElement.getInt("rank"); 
+
+                        if (newRank < crtRank) {
+                            crtNode.put("rank", newRank);
+                        }
                     }
                 }
+
+                // if (!crtNode.has("rank")) {
+                //     if (nodeElement.has("rank")) {
+                //         crtNode.put("rank", nodeElement.getInt("rank"));
+                //     }
+                // }
                 return num;
             }
         }
@@ -241,8 +259,10 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
 
                 fromNodeElement.put("name", fromCellValue);
                 fromNodeElement.put("rank", rank);
+                fromNodeElement.put("group", 1);
 
                 toNodeElement.put("name", toCellValue);
+                toNodeElement.put("group", 0);
 
                 Integer fromPosition = addNodeToNodes(nodes, fromNodeElement);
                 Integer toPosition = addNodeToNodes(nodes, toNodeElement);
@@ -250,6 +270,7 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
                 linkElement.put("source", fromPosition);
                 linkElement.put("target", toPosition);
                 linkElement.put("value", key);
+                linkElement.put("rank", rank);
 
                 links.addLast(linkElement);
 
