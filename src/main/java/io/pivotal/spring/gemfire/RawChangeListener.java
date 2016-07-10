@@ -168,8 +168,6 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
 
                 Integer crtGroup = crtNode.getInt("group");
                 Integer newGroup = nodeElement.getInt("group");
-                // var crtRank = crtNode.getInt("rank");
-                // var newRank = nodeElement.getInt("rank");
 
                 if (crtGroup < newGroup) {                    
                     crtNode.put("group", newGroup);
@@ -185,11 +183,6 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
                     }
                 }
 
-                // if (!crtNode.has("rank")) {
-                //     if (nodeElement.has("rank")) {
-                //         crtNode.put("rank", nodeElement.getInt("rank"));
-                //     }
-                // }
                 return num;
             }
         }
