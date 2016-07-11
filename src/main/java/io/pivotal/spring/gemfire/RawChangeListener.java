@@ -165,24 +165,6 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
             JSONObject crtNode = nodes.get(num);
 
             if (crtNode.getString("name").equals(nodeElement.getString("name"))) {
-
-                Integer crtGroup = crtNode.getInt("group");
-                Integer newGroup = nodeElement.getInt("group");
-
-                if (crtGroup < newGroup) {                    
-                    crtNode.put("group", newGroup);
-                    crtNode.put("rank", nodeElement.getInt("rank"));
-                } else if (crtGroup == newGroup) {
-                    if (crtNode.has("rank")) {
-                        Integer crtRank = crtNode.getInt("rank");
-                        Integer newRank = nodeElement.getInt("rank"); 
-
-                        if (newRank < crtRank) {
-                            crtNode.put("rank", newRank);
-                        }
-                    }
-                }
-
                 return num;
             }
         }
@@ -191,6 +173,39 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
 
         return nodes.size() - 1;
     }
+
+    // private Integer addNodeToNodes(LinkedList<JSONObject> nodes, JSONObject nodeElement) throws Exception{
+
+    //     for(int num=0; num < nodes.size(); num++) {
+    //         JSONObject crtNode = nodes.get(num);
+
+    //         if (crtNode.getString("name").equals(nodeElement.getString("name"))) {
+
+    //             Integer crtGroup = crtNode.getInt("group");
+    //             Integer newGroup = nodeElement.getInt("group");
+
+    //             if (crtGroup < newGroup) {                    
+    //                 crtNode.put("group", newGroup);
+    //                 crtNode.put("rank", nodeElement.getInt("rank"));
+    //             } else if (crtGroup == newGroup) {
+    //                 if (crtNode.has("rank")) {
+    //                     Integer crtRank = crtNode.getInt("rank");
+    //                     Integer newRank = nodeElement.getInt("rank"); 
+
+    //                     if (newRank < crtRank) {
+    //                         crtNode.put("rank", newRank);
+    //                     }
+    //                 }
+    //             }
+
+    //             return num;
+    //         }
+    //     }
+
+    //     nodes.addLast(nodeElement);
+
+    //     return nodes.size() - 1;
+    // }
 
     private PdxInstance generateTopTenJson() throws Exception{
 
@@ -251,11 +266,11 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
                 JSONObject linkElement = new JSONObject();
 
                 fromNodeElement.put("name", fromCellValue);
-                fromNodeElement.put("rank", rank);
-                fromNodeElement.put("group", 1);
+                // fromNodeElement.put("rank", rank);
+                // fromNodeElement.put("group", 1);
 
                 toNodeElement.put("name", toCellValue);
-                toNodeElement.put("group", 0);
+                // toNodeElement.put("group", 0);
 
                 Integer fromPosition = addNodeToNodes(nodes, fromNodeElement);
                 Integer toPosition = addNodeToNodes(nodes, toNodeElement);
