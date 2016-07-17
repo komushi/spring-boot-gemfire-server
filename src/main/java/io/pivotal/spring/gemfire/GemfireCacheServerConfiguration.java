@@ -71,13 +71,23 @@ public class GemfireCacheServerConfiguration {
         Properties gemfireProperties = new Properties();
 
         gemfireProperties.setProperty("name", SpringBootGemfireServerApplication.class.getSimpleName());
-        gemfireProperties.setProperty("mcast-port", "0");
         gemfireProperties.setProperty("log-level", properties.getLogLevel());
-        gemfireProperties.setProperty("locators", properties.getLocatorAddress());
-        gemfireProperties.setProperty("start-locator", properties.getLocatorAddress());
-        gemfireProperties.setProperty("jmx-manager", "true");
-        gemfireProperties.setProperty("jmx-manager-port", properties.getJmxManagerPort());
-        gemfireProperties.setProperty("jmx-manager-start", properties.getStartJmx());
+//        gemfireProperties.setProperty("mcast-port", "0");
+//        gemfireProperties.setProperty("locators", properties.getLocatorAddress());
+//        gemfireProperties.setProperty("start-locator", properties.getLocatorAddress());
+
+        if (properties.getUseLocator().equals("true")) {
+            gemfireProperties.setProperty("mcast-port", "0");
+            gemfireProperties.setProperty("locators", properties.getLocatorAddress());
+            gemfireProperties.setProperty("start-locator", properties.getLocatorAddress());
+        }
+
+        if (properties.getUseJmx().equals("true")) {
+            gemfireProperties.setProperty("jmx-manager", properties.getUseJmx());
+            gemfireProperties.setProperty("jmx-manager-port", properties.getJmxManagerPort());
+            gemfireProperties.setProperty("jmx-manager-start", properties.getStartJmx());
+        }
+
 
         String logFile = properties.getLogFile();
 
@@ -140,7 +150,7 @@ public class GemfireCacheServerConfiguration {
         asyncEventQueue.setName("rawQueue");
         asyncEventQueue.setParallel(false);
         asyncEventQueue.setDispatcherThreads(1);
-        asyncEventQueue.setBatchTimeInterval(5);
+        asyncEventQueue.setBatchTimeInterval(1000);
         asyncEventQueue.setBatchSize(100);
         asyncEventQueue.setBatchConflationEnabled(true);
         asyncEventQueue.setPersistent(false);
