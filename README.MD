@@ -254,3 +254,10 @@ http post --target http://http2gem-http.cfapps.io --contentType "application/jso
 ```
 cf create-security-group local https://rawgit.com/komushi/spring-boot-gemfire-server/master/rules.json
 ```
+
+
+---
+## temporary
+```
+curl -H "Content-Type: application/json" -X POST -d'{"pickupLatitude":40.760326,"pickupLongitude":-73.967758,"dropoffLatitude":40.779728,"dropoffLongitude":-73.855383,"pickupDatetime":"2013-01-01 00:00:00","dropoffDatetime":"2013-01-01 00:04:00","route":"C161.160_C180.155","uuid":"7a49cba6-d3fc-47a4-8e1a-c2503b8144e1"}' 'http://localhost:9000'
+```

@@ -371,9 +371,6 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
 
         }
 
-
-
-
         return false;
     }
 

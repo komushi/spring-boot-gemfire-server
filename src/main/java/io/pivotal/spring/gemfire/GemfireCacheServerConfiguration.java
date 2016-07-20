@@ -9,6 +9,8 @@ import com.gemstone.gemfire.cache.asyncqueue.AsyncEventListener;
 import com.gemstone.gemfire.cache.util.Gateway;
 import com.gemstone.gemfire.cache.wan.GatewayEventFilter;
 import com.gemstone.gemfire.cache.wan.GatewayEventSubstitutionFilter;
+import io.pivotal.spring.gemfire.async.RawRecord;
+import io.pivotal.spring.gemfire.async.RawRecordRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -21,12 +23,14 @@ import org.springframework.data.gemfire.PartitionedRegionFactoryBean;
 import org.springframework.data.gemfire.RegionAttributesFactoryBean;
 import org.springframework.data.gemfire.ExpirationAttributesFactoryBean;
 import org.springframework.data.gemfire.wan.AsyncEventQueueFactoryBean;
+import org.springframework.data.gemfire.repository.support.GemfireRepositoryFactoryBean;
 
 import com.gemstone.gemfire.cache.Cache;
-
 import com.gemstone.gemfire.cache.RegionAttributes;
 import com.gemstone.gemfire.cache.ExpirationAttributes;
 
+import io.pivotal.spring.gemfire.async.MultiRawListener;
+import io.pivotal.spring.gemfire.async.RawPdxSerializer;
 
 /**
  * Created by lei_xu on 6/19/16.
@@ -59,9 +63,11 @@ public class GemfireCacheServerConfiguration {
     CacheFactoryBean gemfireCache(@Qualifier("gemfireProperties") Properties gemfireProperties) {
         CacheFactoryBean gemfireCache = new CacheFactoryBean();
 
-        gemfireCache.setClose(true);
+//        gemfireCache.setClose(true);
         gemfireCache.setProperties(gemfireProperties);
-        gemfireCache.setUseBeanFactoryLocator(false);
+//        gemfireCache.setUseBeanFactoryLocator(false);
+//        gemfireCache.setPdxSerializer(new RawPdxSerializer());
+        gemfireCache.setPdxReadSerialized(false);
 
         return gemfireCache;
     }
@@ -72,9 +78,7 @@ public class GemfireCacheServerConfiguration {
 
         gemfireProperties.setProperty("name", SpringBootGemfireServerApplication.class.getSimpleName());
         gemfireProperties.setProperty("log-level", properties.getLogLevel());
-//        gemfireProperties.setProperty("mcast-port", "0");
-//        gemfireProperties.setProperty("locators", properties.getLocatorAddress());
-//        gemfireProperties.setProperty("start-locator", properties.getLocatorAddress());
+
 
         if (properties.getUseLocator().equals("true")) {
             gemfireProperties.setProperty("mcast-port", "0");
@@ -99,15 +103,14 @@ public class GemfireCacheServerConfiguration {
     }
 
     // RegionRaw Configurations
-
-    @Bean
+    @Bean(name = "RegionRaw")
     PartitionedRegionFactoryBean<String, Object> rawRegion(Cache gemfireCache,
                                                               @Qualifier("rawRegionAttributes") RegionAttributes<String, Object> rawRegionAttributes)
     {
         PartitionedRegionFactoryBean<String, Object> rawRegion = new PartitionedRegionFactoryBean<>();
 
         rawRegion.setCache(gemfireCache);
-        rawRegion.setClose(false);
+//        rawRegion.setClose(false);
         rawRegion.setAttributes(rawRegionAttributes);
         rawRegion.setName("RegionRaw");
         rawRegion.setPersistent(false);
@@ -124,6 +127,7 @@ public class GemfireCacheServerConfiguration {
         rawRegionAttributes.setKeyConstraint(String.class);
         rawRegionAttributes.setValueConstraint(Object.class);
         rawRegionAttributes.setEntryTimeToLive(expirationAttributes);
+        rawRegionAttributes.addCacheListener(serverCacheListener());
 
         return rawRegionAttributes;
     }
@@ -133,16 +137,35 @@ public class GemfireCacheServerConfiguration {
     ExpirationAttributesFactoryBean expirationAttributes() {
         ExpirationAttributesFactoryBean expirationAttributes = new ExpirationAttributesFactoryBean();
 
-        expirationAttributes.setTimeout(3600);
+        expirationAttributes.setTimeout(360);
         expirationAttributes.setAction(ExpirationAction.DESTROY);
 
         return expirationAttributes;
     }
 
+//    @Bean
+//    RawChangeListener rawChangeListener() {
+//        return new RawChangeListener();
+//    }
+
     @Bean
-    RawChangeListener rawChangeListener() {
-        return new RawChangeListener();
+    MultiRawListener rawChangeListener() {
+        return new MultiRawListener();
     }
+
+    @Bean
+    ServerCacheListener serverCacheListener() {
+        return new ServerCacheListener();
+    }
+//    @Bean
+//    public GemfireRepositoryFactoryBean rawRecordRepository() {
+//        GemfireRepositoryFactoryBean<RawRecordRepository, RawRecord, String> repositoryFactoryBean =
+//                new GemfireRepositoryFactoryBean<>();
+//
+//        repositoryFactoryBean.setRepositoryInterface(RawRecordRepository.class);
+//
+//        return repositoryFactoryBean;
+//    }
 
     @Bean
     AsyncEventQueueFactoryBean asyncEventQueue(Cache gemfireCache) {
@@ -156,20 +179,17 @@ public class GemfireCacheServerConfiguration {
         asyncEventQueue.setPersistent(false);
         asyncEventQueue.setDiskSynchronous(false);
 
-
-
         return asyncEventQueue;
     }
 
     // RegionCount Configurations
-
-    @Bean
+    @Bean(name = "RegionCount")
     PartitionedRegionFactoryBean<String, Integer> countRegion(Cache gemfireCache)
     {
         PartitionedRegionFactoryBean<String, Integer> countRegion = new PartitionedRegionFactoryBean<>();
 
         countRegion.setCache(gemfireCache);
-        countRegion.setClose(false);
+//        countRegion.setClose(false);
         countRegion.setName("RegionCount");
         countRegion.setPersistent(false);
 
@@ -177,14 +197,13 @@ public class GemfireCacheServerConfiguration {
     }
 
     // RegionTop Configurations
-
-    @Bean
+    @Bean(name = "RegionTop")
     PartitionedRegionFactoryBean<Integer, Object> topRegion(Cache gemfireCache)
     {
         PartitionedRegionFactoryBean<Integer, Object> topRegion = new PartitionedRegionFactoryBean<>();
 
         topRegion.setCache(gemfireCache);
-        topRegion.setClose(false);
+//        topRegion.setClose(false);
         topRegion.setName("RegionTop");
         topRegion.setPersistent(false);
 
@@ -192,14 +211,13 @@ public class GemfireCacheServerConfiguration {
     }
 
     // RegionTopTen Configurations
-
-    @Bean
+    @Bean(name = "RegionTopTen")
     PartitionedRegionFactoryBean<Integer, Object> topTenRegion(Cache gemfireCache)
     {
         PartitionedRegionFactoryBean<Integer, Object> topTenRegion = new PartitionedRegionFactoryBean<>();
 
         topTenRegion.setCache(gemfireCache);
-        topTenRegion.setClose(false);
+//        topTenRegion.setClose(false);
         topTenRegion.setName("RegionTopTen");
         topTenRegion.setPersistent(false);
 
