@@ -10,18 +10,18 @@ import java.util.Properties;
 public class ServerCacheListener<K,V> extends CacheListenerAdapter<K,V> implements Declarable {
 
     public void afterCreate(EntryEvent<K,V> e) {
-        System.out.println("    Received afterCreate event for entry: " +
-                e.getKey() + ", " + e.getNewValue());
+//        System.out.println("    Received afterCreate event for entry: " +
+//                e.getKey() + ", " + e.getNewValue());
     }
 
     public void afterUpdate(EntryEvent<K,V> e) {
-        System.out.println("    Received afterUpdate event for entry: " +
-                e.getKey() + ", " + e.getNewValue());
+//        System.out.println("    Received afterUpdate event for entry: " +
+//                e.getKey() + ", " + e.getNewValue());
     }
 
     public void afterDestroy(EntryEvent<K,V> e) {
-        System.out.println("    Received afterDestroy event for entry: " +
-                e.getKey());
+//        System.out.println("    Received afterDestroy event for entry: " +
+//                e.getKey());
 
 
 
@@ -32,12 +32,12 @@ public class ServerCacheListener<K,V> extends CacheListenerAdapter<K,V> implemen
     }
 
     public void afterInvalidate(EntryEvent<K,V> e) {
-        System.out.println("    Received afterInvalidate event for entry: " +
-                e.getKey());
+//        System.out.println("    Received afterInvalidate event for entry: " +
+//                e.getKey());
     }
 
     public void afterRegionLive(RegionEvent e) {
-        System.out.println("    Received afterRegionLive event, sent to durable clients after \nthe server has finished replaying stored events.  ");
+//        System.out.println("    Received afterRegionLive event, sent to durable clients after \nthe server has finished replaying stored events.  ");
     }
 
     public void init(Properties props) {

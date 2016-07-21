@@ -76,7 +76,7 @@ public class GemfireCacheServerConfiguration {
     Properties gemfireProperties() {
         Properties gemfireProperties = new Properties();
 
-        gemfireProperties.setProperty("name", SpringBootGemfireServerApplication.class.getSimpleName());
+        gemfireProperties.setProperty("name", BootApplication.class.getSimpleName());
         gemfireProperties.setProperty("log-level", properties.getLogLevel());
 
 

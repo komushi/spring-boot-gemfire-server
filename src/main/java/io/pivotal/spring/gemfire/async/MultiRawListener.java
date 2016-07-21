@@ -3,9 +3,6 @@ package io.pivotal.spring.gemfire.async;
 import com.gemstone.gemfire.cache.*;
 import com.gemstone.gemfire.cache.asyncqueue.AsyncEvent;
 import com.gemstone.gemfire.cache.asyncqueue.AsyncEventListener;
-import com.gemstone.gemfire.cache.query.Query;
-import com.gemstone.gemfire.cache.query.QueryService;
-import com.gemstone.gemfire.cache.query.SelectResults;
 import com.gemstone.gemfire.pdx.JSONFormatter;
 import com.gemstone.gemfire.pdx.PdxInstance;
 import com.gemstone.org.json.JSONException;
@@ -21,25 +18,22 @@ import java.util.*;
  */
 public class MultiRawListener implements AsyncEventListener, Declarable {
 
-    private GemFireCache gemFireCache;
-    private Region regionCount;
+//    private GemFireCache gemFireCache;
+//    private Region regionCount;
 //    private Region regionRaw = gemFireCache.getRegion("RegionRaw");
-    private Region<Integer, PdxInstance> regionTop;
-    private Region regionTopTen;
+//    private Region<Integer, PdxInstance> regionTop;
+//    private Region regionTopTen;
 
     @Override
     public boolean processEvents(List<AsyncEvent> events) {
 
-        List<String> routes = new ArrayList<>();
-        List<Integer> countDiffs = new ArrayList<>();
-
-        gemFireCache = CacheFactory.getAnyInstance();
-        regionCount = gemFireCache.getRegion("RegionCount");
-        regionTop = gemFireCache.getRegion("RegionTop");
-        regionTopTen = gemFireCache.getRegion("RegionTopTen");
+        GemFireCache gemFireCache = CacheFactory.getAnyInstance();
+        Region regionCount = gemFireCache.getRegion("RegionCount");
+        Region<Integer, PdxInstance> regionTop = gemFireCache.getRegion("RegionTop");
+        Region regionTopTen = gemFireCache.getRegion("RegionTopTen");
 
         Integer smallestToptenCount = 0;
-
+        Boolean isProcessTopTen = false;
 
         PdxInstance topTenValue = (PdxInstance)regionTopTen.get(1);
         if (topTenValue != null) {
@@ -47,15 +41,10 @@ public class MultiRawListener implements AsyncEventListener, Declarable {
             smallestToptenCount = ((Byte)((PdxInstance)toptenList.getLast()).getField("count")).intValue();
         }
 
-//        try {
-//            String queryString = "SELECT DISTINCT count FROM " + regionTopTen.getFullPath() +  " ORDER BY rank DESC LIMIT 1";
-//
-//            Query query = gemFireCache.getQueryService().newQuery(queryString);
-//            SelectResults<PdxInstance> results = (SelectResults) query.execute();
-//        }
-//        catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        Long keyTimestamp = 0L;
+        String keyUuid = "";
+        String keyRoute = "";
+        Integer keyCount = 0;
 
         System.out.println("new events, events.size:" + events.size());
         try {
@@ -89,24 +78,45 @@ public class MultiRawListener implements AsyncEventListener, Declarable {
                 PdxInstance originCountValue = (PdxInstance)regionCount.get(route);
 
                 if(originCountValue==null){
-
                     newCount = 1;
                 }
                 else
                 {
                     originalCount = ((Byte)originCountValue.getField("route_count")).intValue();
                     originalTimestamp = (Long)originCountValue.getField("timestamp");
-                    newCount = (originalCount + countDiff);
-
+                    newCount = originalCount + countDiff;
                 }
 
-                processRegionCount(route, originalCount, originalTimestamp, newCount, newTimestamp);
+                processRegionCount(regionCount, route, originalCount, originalTimestamp, newCount, newTimestamp);
 
-                processRegionTop(route, originalCount, originalTimestamp, newCount, newTimestamp);
+                processRegionTop(regionTop, route, originalCount, originalTimestamp, newCount, newTimestamp);
 
+                // Check whether need to refresh topten
+                if (newCount > originalCount) {
+
+                    if (newCount >= smallestToptenCount) {
+                        isProcessTopTen = Boolean.logicalOr(isProcessTopTen, Boolean.TRUE);
+
+                        if (keyRoute.isEmpty()) {
+                            keyTimestamp = (Long)raw.getField("timestamp");
+                            keyUuid = (String)raw.getField("uuid");
+                            keyRoute = route;
+                            keyCount = newCount;
+                        }
+                    }
+                }
+//                else if (newCount < originalCount){
+//                    // TODO waiting for expiration destroy opertaion to be published in async event
+//                    // https://issues.apache.org/jira/browse/GEODE-1209
+//                    if (originalCount >= smallestToptenCount) {
+//                        isProcessTopTen = Boolean.logicalOr(isProcessTopTen, Boolean.TRUE);
+//                    }
+//                }
             }
 
-            processRegionTopTen();
+            if (isProcessTopTen) {
+                processRegionTopTen(regionTop, regionTopTen, keyRoute, keyUuid, keyCount, keyTimestamp);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -114,7 +124,7 @@ public class MultiRawListener implements AsyncEventListener, Declarable {
         return true;
     }
 
-    private void processRegionCount(String route, Integer originalCount, Long originalTimestamp, Integer newCount, Long newTimestamp) throws Exception{
+    private void processRegionCount(Region regionCount, String route, Integer originalCount, Long originalTimestamp, Integer newCount, Long newTimestamp) throws Exception{
         // process RegionCount
 
         JSONObject jsonObj = new JSONObject().put("route", route).put("route_count", newCount).put("timestamp", newTimestamp);
@@ -131,87 +141,35 @@ public class MultiRawListener implements AsyncEventListener, Declarable {
     }
 
 
-
-/*
-    private void processRegionCount(String route, Integer countDiff, Long timestamp) throws Exception{
-//        CacheTransactionManager tm = ((Cache)event.getRegion().getRegionService()).getCacheTransactionManager();
-//        tm.begin();
-
-//        GemFireCache gemFireCache = CacheFactory.getAnyInstance();
-//        Region regionCount = gemFireCache.getRegion("RegionCount");
-//        Region regionRaw = gemFireCache.getRegion("RegionRaw");
-
-
-        // process RegionCount
-        Integer originalCount = 0 ;
-        Integer newCount = 0;
-        Long originalTimestamp = 0L;
-
-        PdxInstance originCountValue = (PdxInstance)regionCount.get(route);
-
-        if(originCountValue==null){
-            JSONObject jsonObj = new JSONObject().put("route", route).put("route_count", 1).put("timestamp", timestamp);
-
-
-            PdxInstance firstValue = JSONFormatter.fromJSON(jsonObj.toString());
-
-            if(regionCount.putIfAbsent(route, firstValue)==null){
-                newCount = 1;
-            } else System.out.println("-----------------------------------------putIfAbsent rerun");
-        }
-        else
-        {
-            originalCount = ((Byte)originCountValue.getField("route_count")).intValue();
-            originalTimestamp = (Long)originCountValue.getField("timestamp");
-            newCount = (originalCount + countDiff);
-
-            JSONObject jsonObj = new JSONObject().put("route", route).put("route_count", newCount).put("timestamp", timestamp);
-
-            PdxInstance newCountValue = JSONFormatter.fromJSON(jsonObj.toString());
-
-            if (regionCount.replace(route, originCountValue, newCountValue))
-            {
-                System.out.println("ori: " + originalCount + " new: " + newCount);
-            }
-            else
-            {
-                System.out.println("---------------------------------------------replace rerun");
-            }
-
-        }
-
-        // process RegionTop
-        processRegionTop(route, originalCount, originalTimestamp, newCount, timestamp);
-
-    }
-*/
-
-    private void processRegionTop(String route, Integer originalCount, Long originalTimestamp, Integer newCount, Long newTimestamp) throws Exception{
+    private void processRegionTop(Region regionTop, String route, Integer originalCount, Long originalTimestamp, Integer newCount, Long newTimestamp) throws Exception{
 
 
         if (newCount > originalCount) {
-            if (originalCount == 0) {
-                // add to new entry
-                addRouteToTop(regionTop, route, newCount, newTimestamp);
 
-            } else {
-                // add to new entry
-                addRouteToTop(regionTop, route, newCount, newTimestamp);
+            // add to new entry
+            addRouteToTop(regionTop, route, newCount, newTimestamp);
+
+
+            if (originalCount != 0) {
 
                 // remove from old entry
                 removeRouteFromOldTop(regionTop, route, originalCount, originalTimestamp);
             }
 
-//            if (newCount >= smallestToptenCount) {
+        }
+//        else if (newCount < originalCount) {
+//            // TODO waiting for expiration destroy opertaion to be published in async event
+//            // https://issues.apache.org/jira/browse/GEODE-1209
+//            if (newCount != 0) {
+//                // add to new entry
+//                addRouteToTop(regionTop, route, newCount, newTimestamp);
 //
 //            }
-
-        }
-        else if (newCount < originalCount) {
-            // TODO waiting for expiration destroy opertaion to be published in async event
-            // https://issues.apache.org/jira/browse/GEODE-1209
-
-        }
+//
+//            // add to new entry
+//            removeRouteFromOldTop(regionTop, route, originalCount, originalTimestamp);
+//
+//        }
 
     }
 
@@ -280,28 +238,9 @@ public class MultiRawListener implements AsyncEventListener, Declarable {
         }
     }
 
-    private void processRegionTopTen() throws Exception{
-
-
-        PdxInstance newRegionTopTenValue = generateTopTenJson();
-        PdxInstance crtRegionTopTenValue = (PdxInstance)regionTopTen.get(1);
-
-
-        if (differTopTen(crtRegionTopTenValue, newRegionTopTenValue))
-        {
-            regionTopTen.put(1, newRegionTopTenValue);
-        }
-
-    }
-
-    private PdxInstance generateTopTenJson() throws Exception{
+    private void processRegionTopTen(Region<Integer, PdxInstance>  regionTop, Region regionTopTen, String keyRoute, String keyUuid, Integer keyCount, Long keyTimestamp) throws Exception{
 
         JSONObject toptenJson = new JSONObject();
-        long crtTimestamp = 100L;
-        String crtUuid = "468244D1361B8A3EB8D206CC394BC9E9";
-        String crtRoute = "test_test";
-        long delay = (Calendar.getInstance().getTimeInMillis() - crtTimestamp);
-
 
         Set<Integer> keySet = regionTop.keySet();
 
@@ -381,21 +320,18 @@ public class MultiRawListener implements AsyncEventListener, Declarable {
             }
         }
 
-        // get current raw entry value and set to region top ten
-        PdxInstance regionCountValue = (PdxInstance)regionCount.get(crtRoute);
-//        Integer routeCount = ((Byte)regionCountValue.getField("route_count")).intValue();
 
-
-        String[] crtRouteArray = crtRoute.split("_");
+        Long delay = (Calendar.getInstance().getTimeInMillis() - keyTimestamp);
+        String[] crtRouteArray = keyRoute.split("_");
         String crtFromCellValue = crtRouteArray[0];
         String crtToCellValue = crtRouteArray[1];
 
         toptenJson.put("from", crtFromCellValue);
         toptenJson.put("to", crtToCellValue);
-        toptenJson.put("count", 100);
-        toptenJson.put("uuid", crtUuid);
+        toptenJson.put("count", keyCount);
+        toptenJson.put("uuid", keyUuid);
         toptenJson.put("delay", delay);
-        toptenJson.put("timestamp", crtTimestamp);
+        toptenJson.put("timestamp", keyTimestamp);
 
         // set toptenlist
         toptenJson.put("toptenlist", topTenList);
@@ -405,8 +341,16 @@ public class MultiRawListener implements AsyncEventListener, Declarable {
         matrix.put("links", links);
         toptenJson.put("matrix", matrix);
 
-        return JSONFormatter.fromJSON(toptenJson.toString());
 
+        PdxInstance newRegionTopTenValue = JSONFormatter.fromJSON(toptenJson.toString());
+        PdxInstance crtRegionTopTenValue = (PdxInstance)regionTopTen.get(1);
+
+//        regionTopTen.put(1, newRegionTopTenValue);
+
+        if (differTopTen(crtRegionTopTenValue, newRegionTopTenValue))
+        {
+            regionTopTen.put(1, newRegionTopTenValue);
+        }
     }
 
     private Integer addNodeToNodes(LinkedList<JSONObject> nodes, JSONObject nodeElement) throws Exception{
