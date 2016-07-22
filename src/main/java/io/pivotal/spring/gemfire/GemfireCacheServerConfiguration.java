@@ -44,7 +44,7 @@ public class GemfireCacheServerConfiguration {
         CacheServerFactoryBean gemfireCacheServer = new CacheServerFactoryBean();
 
         gemfireCacheServer.setCache(gemfireCache);
-        gemfireCacheServer.setAutoStartup(properties.getAutoStartuo());
+        gemfireCacheServer.setAutoStartup(properties.getAutoStartup());
         gemfireCacheServer.setBindAddress(properties.getBindAddress());
         gemfireCacheServer.setHostNameForClients(properties.getHostNameForClients());
         gemfireCacheServer.setPort(properties.getCacheServerPort());
@@ -103,7 +103,7 @@ public class GemfireCacheServerConfiguration {
         PartitionedRegionFactoryBean<String, Object> rawRegion = new PartitionedRegionFactoryBean<>();
 
         rawRegion.setCache(gemfireCache);
-//        rawRegion.setClose(false);
+        rawRegion.setClose(false);
         rawRegion.setAttributes(rawRegionAttributes);
         rawRegion.setName("RegionRaw");
         rawRegion.setPersistent(false);
@@ -130,7 +130,7 @@ public class GemfireCacheServerConfiguration {
     ExpirationAttributesFactoryBean expirationAttributes() {
         ExpirationAttributesFactoryBean expirationAttributes = new ExpirationAttributesFactoryBean();
 
-        expirationAttributes.setTimeout(60);
+        expirationAttributes.setTimeout(properties.getTimeout());
         expirationAttributes.setAction(ExpirationAction.DESTROY);
 
         return expirationAttributes;
@@ -157,9 +157,9 @@ public class GemfireCacheServerConfiguration {
         AsyncEventQueueFactoryBean asyncEventQueue = new AsyncEventQueueFactoryBean(gemfireCache, rawChangeListener());
         asyncEventQueue.setName("rawQueue");
         asyncEventQueue.setParallel(false);
-        asyncEventQueue.setDispatcherThreads(1);
-        asyncEventQueue.setBatchTimeInterval(2000);
-        asyncEventQueue.setBatchSize(100);
+        asyncEventQueue.setDispatcherThreads(properties.getDispatcherThreads());
+        asyncEventQueue.setBatchTimeInterval(properties.getBatchTimeInterval());
+        asyncEventQueue.setBatchSize(properties.getBatchSize());
         asyncEventQueue.setBatchConflationEnabled(true);
         asyncEventQueue.setPersistent(false);
         asyncEventQueue.setDiskSynchronous(false);
@@ -174,7 +174,7 @@ public class GemfireCacheServerConfiguration {
         PartitionedRegionFactoryBean<String, Integer> countRegion = new PartitionedRegionFactoryBean<>();
 
         countRegion.setCache(gemfireCache);
-//        countRegion.setClose(false);
+        countRegion.setClose(false);
         countRegion.setName("RegionCount");
         countRegion.setPersistent(false);
 

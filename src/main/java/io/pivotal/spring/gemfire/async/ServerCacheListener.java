@@ -89,7 +89,6 @@ public class ServerCacheListener<K,V> extends CacheListenerAdapter<K,V> implemen
                         keyCount = newCount;
                         incremental = false;
 
-
                         processor.processRegionTopTen(keyRoute, keyUuid, keyCount, keyTimestamp, incremental);
                     }
                 }

@@ -27,7 +27,7 @@ public class GemfireProperties {
 
     private static final String DEFAULT_USE_LOCATOR = "true";
 
-    private Boolean autoStartuo;
+    private Boolean autoStartup;
 
     private String bindAddress;
 
@@ -51,16 +51,56 @@ public class GemfireProperties {
 
     private String useLocator;
 
-    public void setAutoStartuo(Boolean autoStartuo) {
-        this.autoStartuo = autoStartuo;
+    private Integer batchSize = 100;
+
+    private Integer batchTimeInterval = 2000;
+
+    private Integer dispatcherThreads = 1;
+
+    private Integer timeout = 120;
+
+    public void setDispatcherThreads(Integer dispatcherThreads) {
+        this.dispatcherThreads = dispatcherThreads;
     }
 
-    public Boolean getAutoStartuo() {
-        if (this.autoStartuo == null) {
+    public Integer getDispatcherThreads() {
+        return this.dispatcherThreads;
+    }
+
+    public void setBatchTimeInterval(Integer batchTimeInterval) {
+        this.batchTimeInterval = batchTimeInterval;
+    }
+
+    public Integer getBatchTimeInterval() {
+        return this.batchTimeInterval;
+    }
+
+    public void setBatchSize(Integer batchSize) {
+        this.batchSize = batchSize;
+    }
+
+    public Integer getBatchSize() {
+        return this.batchSize;
+    }
+
+    public void setTimeout(Integer timeout) {
+        this.timeout = timeout;
+    }
+
+    public Integer getTimeout() {
+        return this.timeout;
+    }
+
+    public void setAutoStartup(Boolean autoStartup) {
+        this.autoStartup = autoStartup;
+    }
+
+    public Boolean getAutoStartup() {
+        if (this.autoStartup == null) {
             return DEFAULT_AUTO_STARTUP;
         }
         else {
-            return this.autoStartuo;
+            return this.autoStartup;
         }
     }
 

@@ -377,10 +377,8 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
     // TODO
     private void refreshTopTen() throws Exception{
 
-
         PdxInstance newRegionTopTenValue = generateTopTenJson();
         PdxInstance crtRegionTopTenValue = (PdxInstance)regionTopTen.get(1);
-
 
         if (differTopTen(crtRegionTopTenValue, newRegionTopTenValue))
         {
