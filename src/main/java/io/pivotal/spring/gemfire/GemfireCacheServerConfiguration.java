@@ -57,10 +57,9 @@ public class GemfireCacheServerConfiguration {
     CacheFactoryBean gemfireCache(@Qualifier("gemfireProperties") Properties gemfireProperties) {
         CacheFactoryBean gemfireCache = new CacheFactoryBean();
 
-//        gemfireCache.setClose(true);
+        gemfireCache.setClose(true);
         gemfireCache.setProperties(gemfireProperties);
 //        gemfireCache.setUseBeanFactoryLocator(false);
-//        gemfireCache.setPdxSerializer(new RawPdxSerializer());
         gemfireCache.setPdxReadSerialized(false);
 
         return gemfireCache;
@@ -131,7 +130,7 @@ public class GemfireCacheServerConfiguration {
     ExpirationAttributesFactoryBean expirationAttributes() {
         ExpirationAttributesFactoryBean expirationAttributes = new ExpirationAttributesFactoryBean();
 
-        expirationAttributes.setTimeout(30);
+        expirationAttributes.setTimeout(60);
         expirationAttributes.setAction(ExpirationAction.DESTROY);
 
         return expirationAttributes;
@@ -151,15 +150,7 @@ public class GemfireCacheServerConfiguration {
     ServerCacheListener serverCacheListener() {
         return new ServerCacheListener();
     }
-//    @Bean
-//    public GemfireRepositoryFactoryBean rawRecordRepository() {
-//        GemfireRepositoryFactoryBean<RawRecordRepository, RawRecord, String> repositoryFactoryBean =
-//                new GemfireRepositoryFactoryBean<>();
-//
-//        repositoryFactoryBean.setRepositoryInterface(RawRecordRepository.class);
-//
-//        return repositoryFactoryBean;
-//    }
+
 
     @Bean
     AsyncEventQueueFactoryBean asyncEventQueue(Cache gemfireCache) {
@@ -167,7 +158,7 @@ public class GemfireCacheServerConfiguration {
         asyncEventQueue.setName("rawQueue");
         asyncEventQueue.setParallel(false);
         asyncEventQueue.setDispatcherThreads(1);
-        asyncEventQueue.setBatchTimeInterval(50);
+        asyncEventQueue.setBatchTimeInterval(2000);
         asyncEventQueue.setBatchSize(100);
         asyncEventQueue.setBatchConflationEnabled(true);
         asyncEventQueue.setPersistent(false);

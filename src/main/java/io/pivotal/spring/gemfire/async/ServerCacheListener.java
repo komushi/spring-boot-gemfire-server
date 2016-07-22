@@ -17,64 +17,65 @@ public class ServerCacheListener<K,V> extends CacheListenerAdapter<K,V> implemen
     private Region regionTopTen;
 
     public void afterDestroy(EntryEvent<K,V> e) {
-        if (e.getOperation().equals(Operation.EXPIRE_DESTROY)) {
+        try {
+            if (e.getOperation().equals(Operation.EXPIRE_DESTROY)) {
 
-            PdxInstance raw;
-            Object oldValue = e.getOldValue();
-            if (oldValue instanceof PdxInstance) {
-                raw = (PdxInstance)oldValue;
-            } else {
-                return;
-            }
-
-
-            Integer countDiff = -1;
-
-            gemFireCache = CacheFactory.getAnyInstance();
-            regionCount = gemFireCache.getRegion("RegionCount");
-            regionTop = gemFireCache.getRegion("RegionTop");
-            regionTopTen = gemFireCache.getRegion("RegionTopTen");
-
-            RegionProcessor processor = new RegionProcessor(regionCount, regionTop, regionTopTen);
-
-            // count & top process
-            String route = (String)raw.getField("route");
-            Long newTimestamp = (Long)raw.getField("timestamp");
-
-            Integer originalCount = 0 ;
-            Integer newCount = 0;
-            Long originalTimestamp = 0L;
-
-            PdxInstance originCountValue = (PdxInstance)regionCount.get(route);
-
-            if(originCountValue==null){
-                newCount = 1;
-            }
-            else
-            {
-                originalCount = ((Byte)originCountValue.getField("route_count")).intValue();
-                originalTimestamp = (Long)originCountValue.getField("timestamp");
-                newCount = originalCount + countDiff;
-            }
-
-            // top ten process
-            Integer smallestToptenCount = 0;
-            PdxInstance topTenValue = (PdxInstance)regionTopTen.get(1);
-            if (topTenValue != null) {
-                LinkedList toptenList = (LinkedList)topTenValue.getField("toptenlist");
-                if (toptenList.size() != 0) {
-                    smallestToptenCount = ((Byte)((PdxInstance)toptenList.getLast()).getField("count")).intValue();
+                PdxInstance raw;
+                Object oldValue = e.getOldValue();
+                if (oldValue instanceof PdxInstance) {
+                    raw = (PdxInstance)oldValue;
+                } else {
+                    return;
                 }
-            }
-
-            Long keyTimestamp = 0L;
-            String keyUuid = "";
-            String keyRoute = "";
-            Integer keyCount = 0;
-            Boolean incremental = false;
 
 
-            try {
+                Integer countDiff = -1;
+
+                gemFireCache = CacheFactory.getAnyInstance();
+                regionCount = gemFireCache.getRegion("RegionCount");
+                regionTop = gemFireCache.getRegion("RegionTop");
+                regionTopTen = gemFireCache.getRegion("RegionTopTen");
+
+                RegionProcessor processor = new RegionProcessor(regionCount, regionTop, regionTopTen);
+
+                // count & top process
+                String route = (String)raw.getField("route");
+                Long newTimestamp = (Long)raw.getField("timestamp");
+
+                Integer originalCount = 0 ;
+                Integer newCount = 0;
+                Long originalTimestamp = 0L;
+
+                PdxInstance originCountValue = (PdxInstance)regionCount.get(route);
+
+                if(originCountValue==null){
+                    newCount = 1;
+                }
+                else
+                {
+                    originalCount = ((Byte)originCountValue.getField("route_count")).intValue();
+                    originalTimestamp = (Long)originCountValue.getField("timestamp");
+                    newCount = originalCount + countDiff;
+                }
+
+                // top ten process
+                Integer smallestToptenCount = 0;
+                PdxInstance topTenValue = (PdxInstance)regionTopTen.get(1);
+                if (topTenValue != null) {
+                    LinkedList toptenList = (LinkedList)topTenValue.getField("toptenlist");
+                    if (toptenList.size() != 0) {
+                        smallestToptenCount = ((Byte)((PdxInstance)toptenList.getLast()).getField("count")).intValue();
+                    }
+                }
+
+                Long keyTimestamp = 0L;
+                String keyUuid = "";
+                String keyRoute = "";
+                Integer keyCount = 0;
+                Boolean incremental = false;
+
+
+
                 processor.processRegionCount(route, originalCount, originalTimestamp, newCount, newTimestamp);
 
                 processor.processRegionTop(route, originalCount, originalTimestamp, newCount, newTimestamp);
@@ -94,10 +95,10 @@ public class ServerCacheListener<K,V> extends CacheListenerAdapter<K,V> implemen
                 }
 
             }
-            catch (Exception exception) {
-                exception.printStackTrace();
-            }
 
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
         }
     }
 

@@ -3,6 +3,7 @@ package io.pivotal.spring.gemfire.async.lib;
 import com.gemstone.gemfire.cache.Region;
 import com.gemstone.gemfire.pdx.JSONFormatter;
 import com.gemstone.gemfire.pdx.PdxInstance;
+import com.gemstone.org.json.JSONException;
 import com.gemstone.org.json.JSONObject;
 
 import java.util.*;
@@ -230,16 +231,16 @@ public class RegionProcessor {
         toptenJson.put("matrix", matrix);
 
 
-//        PdxInstance newRegionTopTenValue = JSONFormatter.fromJSON(toptenJson.toString());
-//        PdxInstance crtRegionTopTenValue = (PdxInstance)regionTopTen.get(1);
-
-//        if (differTopTen(crtRegionTopTenValue, newRegionTopTenValue))
-//        {
-//            regionTopTen.put(1, newRegionTopTenValue);
-//        }
-
         PdxInstance newRegionTopTenValue = JSONFormatter.fromJSON(toptenJson.toString());
-        regionTopTen.put(1, newRegionTopTenValue);
+        PdxInstance crtRegionTopTenValue = (PdxInstance)regionTopTen.get(1);
+
+        if (differTopTen(crtRegionTopTenValue, newRegionTopTenValue))
+        {
+            regionTopTen.put(1, newRegionTopTenValue);
+        }
+
+//        PdxInstance newRegionTopTenValue = JSONFormatter.fromJSON(toptenJson.toString());
+//        regionTopTen.put(1, newRegionTopTenValue);
     }
 
     private Integer addNodeToNodes(LinkedList<JSONObject> nodes, JSONObject nodeElement) throws Exception{
@@ -255,5 +256,56 @@ public class RegionProcessor {
         nodes.addLast(nodeElement);
 
         return nodes.size() - 1;
+    }
+
+    private boolean differTopTen(PdxInstance crtRegionTopTenValue, PdxInstance newRegionTopTenValue){
+
+        if (crtRegionTopTenValue == null && newRegionTopTenValue!= null)
+        {
+            return true;
+        }
+
+        if (crtRegionTopTenValue != null && newRegionTopTenValue== null)
+        {
+            return true;
+        }
+
+
+        LinkedList<PdxInstance> crtTopTenList = (LinkedList)crtRegionTopTenValue.getField("toptenlist");
+        LinkedList<PdxInstance> newTopTenList = (LinkedList)newRegionTopTenValue.getField("toptenlist");
+
+        if (crtTopTenList.size() != newTopTenList.size()) {
+            return true;
+        }
+
+        for(int num=0; num < crtTopTenList.size(); num++)
+        {
+            try {
+                JSONObject crtTopTenElement = new JSONObject(JSONFormatter.toJSON(crtTopTenList.get(num)));
+                JSONObject newTopTenElement = new JSONObject(JSONFormatter.toJSON(newTopTenList.get(num)));
+
+                if (crtTopTenElement.getInt("rank") != newTopTenElement.getInt("rank")) {
+                    return true;
+                }
+
+                if (crtTopTenElement.getInt("count") != newTopTenElement.getInt("count")) {
+                    return true;
+                }
+
+                if (!crtTopTenElement.getString("from").equals(newTopTenElement.getString("from"))) {
+                    return true;
+                }
+
+                if (!crtTopTenElement.getString("to").equals(newTopTenElement.getString("to"))) {
+                    return true;
+                }
+            }
+            catch (JSONException e) {
+                return true;
+            }
+
+        }
+
+        return false;
     }
 }
