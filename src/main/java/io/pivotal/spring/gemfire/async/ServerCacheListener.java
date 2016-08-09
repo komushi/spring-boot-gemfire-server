@@ -25,7 +25,7 @@ public class ServerCacheListener<K,V> extends CacheListenerAdapter<K,V> implemen
                 if (oldValue instanceof PdxInstance) {
                     raw = (PdxInstance)oldValue;
                 } else {
-                    return;
+                    throw new Exception("oldValue class:" + oldValue.getClass().getName());
                 }
 
 
@@ -93,6 +93,9 @@ public class ServerCacheListener<K,V> extends CacheListenerAdapter<K,V> implemen
                     }
                 }
 
+            }
+            else {
+                throw new Exception("operation:" + e.getOperation().toString());
             }
 
         }
