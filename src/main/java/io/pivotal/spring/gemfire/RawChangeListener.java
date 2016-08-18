@@ -103,7 +103,8 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
                 PdxInstance regionCountValue = iter.next();
                 System.out.println(JSONFormatter.toJSON(regionCountValue));
                 String route = (String)(regionCountValue).getField("route");
-                biggest = ((Byte)(regionCountValue).getField("route_count")).intValue();
+//                biggest = ((Byte)(regionCountValue).getField("route_count")).intValue();
+                biggest = Integer.parseInt(regionCountValue.getField("route_count").toString());
                 routes.addLast(route);
             }
 
@@ -296,7 +297,8 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
 
         // get current raw entry value and set to region top ten
         PdxInstance regionCountValue = (PdxInstance)regionCount.get(crtRoute);
-        Integer routeCount = ((Byte)regionCountValue.getField("route_count")).intValue();
+//        Integer routeCount = ((Byte)regionCountValue.getField("route_count")).intValue();
+        Integer routeCount = Integer.parseInt(regionCountValue.getField("route_count").toString());
 
 
         String[] crtRouteArray = crtRoute.split("_");
@@ -621,7 +623,9 @@ public class RawChangeListener implements AsyncEventListener, Declarable {
         }
         else
         {
-            originalCount = ((Byte)originCountValue.getField("route_count")).intValue();
+//            originalCount = ((Byte)originCountValue.getField("route_count")).intValue();
+            originalCount = Integer.parseInt(originCountValue.getField("route_count").toString());
+
             newCount = (originalCount + countDiff);
 
             JSONObject jsonObj = new JSONObject().put("route", route).put("route_count", newCount);

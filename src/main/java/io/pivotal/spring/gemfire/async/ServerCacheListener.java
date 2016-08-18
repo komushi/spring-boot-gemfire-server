@@ -53,7 +53,8 @@ public class ServerCacheListener<K,V> extends CacheListenerAdapter<K,V> implemen
                 }
                 else
                 {
-                    originalCount = ((Byte)originCountValue.getField("route_count")).intValue();
+//                    originalCount = ((Byte)originCountValue.getField("route_count")).intValue();
+                    originalCount = Integer.parseInt(originCountValue.getField("route_count").toString());
                     originalTimestamp = (Long)originCountValue.getField("timestamp");
                     newCount = originalCount + countDiff;
                 }
@@ -64,7 +65,8 @@ public class ServerCacheListener<K,V> extends CacheListenerAdapter<K,V> implemen
                 if (topTenValue != null) {
                     LinkedList toptenList = (LinkedList)topTenValue.getField("toptenlist");
                     if (toptenList.size() != 0) {
-                        smallestToptenCount = ((Byte)((PdxInstance)toptenList.getLast()).getField("count")).intValue();
+//                        smallestToptenCount = ((Byte)((PdxInstance)toptenList.getLast()).getField("count")).intValue();
+                        smallestToptenCount = Integer.parseInt(((PdxInstance)toptenList.getLast()).getField("count").toString());
                     }
                 }
 
